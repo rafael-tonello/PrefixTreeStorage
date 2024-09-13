@@ -1,6 +1,6 @@
-[submodule "command/sources/common/KwWebServer"]
-	path = command/sources/common/KwWebServer
-	url = git@github.com:rafinhatonello/KwWebServer.git
 [submodule "library/sources/common/Logger"]
 	path = library/sources/common/Logger
 	url = git@github.com:rafael-tonello/Logger.git
+[submodule "command/sources/common/KwWebServer"]
+	path = command/sources/common/KwWebServer
+	url = git@github.com:rafael-tonello/KwWebServer.git
