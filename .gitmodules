@@ -3,4 +3,4 @@
 	url = git@github.com:rafael-tonello/Logger.git
 [submodule "command/sources/common/KwWebServer"]
 	path = command/sources/common/KwWebServer
-	url = git@github.com:rafael-tonello/KwWebServer.git
+	url = https://github.com/rafael-tonello/KwWebServer.git
