@@ -156,10 +156,14 @@ string Utils::ssystem (string command, bool removeTheLastLF) {
 
     const int bufferSize = 128;
     char buffer[bufferSize];
-    std::string output;
+    for (int c = 0; c < bufferSize; c++)
+        buffer[c] = 0;
+        
+    std::string output = "";
 
     // Executar o comando e redirecionar stdout e stderr para o mesmo arquivo temporário
-    FILE* pipe = popen((command + " 2>&1").c_str(), "r");
+    command = command + " 2>&1";
+    FILE* pipe = popen(command.c_str(), "r");
     if (pipe == nullptr) {
         std::cerr << "Erro ao executar o comando." << std::endl;
         return output;
