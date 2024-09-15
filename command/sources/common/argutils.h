@@ -129,8 +129,19 @@ public:
             else
                 result.found = false;
         }
+
+        if (tmp.size()> 0) {
+            if(tmp[0] == '"')
+                tmp = tmp.substr(1);
+
+            if (tmp[tmp.size()-1] == '"')
+                tmp = tmp.substr(0, tmp.size()-1);
+        }
+
         result.value = tmp;
 
+
+            result.found = false;
         return result;
     }
 
@@ -254,7 +265,7 @@ public:
                 if (
                     (c == arg) || 
                     (
-                        splittedC.size() > 1 &&
+                        splittedC.size() > 0 &&
                         splittedC[0] == arg
                     )
                 ){
@@ -299,9 +310,16 @@ public:
 
         for (auto &c: this->args)
         {
+            auto splittedC = StringUtils::split(c, {":", "=", " "});
             if (isFlag(c))
             {
-                if (c.find(flag) != string::npos)
+                if (
+                    (c == flag) || 
+                    (
+                        splittedC.size() > 0 &&
+                        splittedC[0].find(flag) != string::npos
+                    )
+                )
                     return true;
             }
         }
