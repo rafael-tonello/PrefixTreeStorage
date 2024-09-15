@@ -1,16 +1,17 @@
 #a git hub action to deploy to repository 'releases' sections
-name: ShellScriptUtils - deploy release
+name: PrefixTreeStorage - deploy release
 run-name: Deploying a release
 on:
   push:
     tags:
       - 'v*'
 
+permissions: write-all
+
 jobs: 
   prepare-release:
     name: Deploy release
     runs-on: ubuntu-22.04
-    permissions: write-all
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -23,60 +24,85 @@ jobs:
             apt update -y > /dev/null 2>&1
             apt install sudo -y
             sudo apt update -y
-            sudo apt install -y bc
-          fi          
+          fi
           sudo apt update -y
-          sudo apt install -y bc
+          sudo apt install -y make llvm clang git libssl-dev
 
       - name: Running tests
         run: |
+          export TERM=xterm
+          currFolder=$(pwd)
+          git submodule update --init --recursive
           echo "Running tests..."
           cd tests
-          chmod +x ./runtests.sh
-          ./runtests.sh
+          make all
+          cd build
+          ./tests
+          cd $currFolder
+
+      - name: Building ...
+        run: |
+          export TERM=xterm
+          backFolder=$(pwd)
+          git submodule update --init --recursive
+
+          echo "Building library..."
+
+          cd library
+          rm -rf build
+          make all
+          cd $backFolder
+
+          #echo "Building command line tool ..."
+          #cd command
+          #rm -rf build
+          #make all
+          #cd $backFolder
+          echo "Command doest not have a build step, because it is already compiled by tests (in the previous step)"
+
 
       - name: saving files to a tar.gz
         #run tar -czf, excluding .git and .github folders
         run: |
           currentFolderName=${PWD##*/}
           currFolder=$(pwd)
-          ls -lha
+          deployFolderName="PrefixTreeStorage-${{ github.ref_name }}"
+          destinationFileName="PrefixTreeStorage-${{ github.ref_name }}.tar.gz "
+
           cd ..
-          ls -lha
-          echo "coping files for a new folder"
-          echo "reponame: $currentFolderName"
-          echo "destination-filename: ShellScriptUtils-${{ github.ref_name }}"
-          cp -r "$currentFolderName" ShellScriptUtils-${{ github.ref_name }}
-          rm -rf ShellScriptUtils-${{ github.ref_name }}/.git
-          rm -rf ShellScriptUtils-${{ github.ref_name }}/.github
-          rm -rf ShellScriptUtils-${{ github.ref_name }}/.gitignore
           
-          echo "Packing the folder ShellScriptUtils-${{ github.ref_name }}  (excluding .githuba and .git folders) ..."
-          tar -czf ShellScriptUtils-${{ github.ref_name }}.tar.gz ShellScriptUtils-${{ github.ref_name }}
+          mkdir -p $deployFolderName
+          echo ============= Removind objects files =================
+          rm -rf "$currentFolderName/command/build/objects"
+          rm -rf "$currentFolderName/library/build/objects"
+        
+          echo ============= Copyng built files =================
+          ls -lha "$currentFolderName/command"
+          cp -r "$currentFolderName/command/build" "$deployFolderName/"
+          mv "$deployFolderName/build" "$deployFolderName/command"
+
+          ls -lha "$currentFolderName/library"
+          cp -r "$currentFolderName/library/build" "$deployFolderName/"
+          mv "$deployFolderName/build" "$deployFolderName/library"
+
+          cp "$currentFolderName/CHANGELOG.md" "$deployFolderName/"
+
+          echo "============= Packing the folder $deployFolderName $destinationFileName file ============="
+          tar -czf $destinationFileName $deployFolderName
           
-          mv ShellScriptUtils-${{ github.ref_name }}.tar.gz $currFolder/
+          mv $destinationFileName $currFolder/
           cd $currFolder
+          echo ============= final folder content =================
           ls -lha
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+        id: create_release2
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-          body_path: CHANGELOG.md
-
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./ShellScriptUtils-${{ github.ref_name }}.tar.gz
-          asset_name: ShellScriptUtils-${{ github.ref_name }}.tar.gz
-          asset_content_type: application/x-gzip
+          tag: ${{ github.ref }}
+          name: Release ${{ github.ref_name }}
+          bodyFile: CHANGELOG.md
+          artifacts: PrefixTreeStorage-${{ github.ref_name }}.tar.gz
+          artifactContentType: application/x-gzip

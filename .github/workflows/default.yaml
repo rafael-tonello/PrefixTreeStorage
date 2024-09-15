@@ -1,5 +1,5 @@
 #this is a github actions workflow file
-name: ShellScriptUtils - default CI
+name: PrefixTreeStorage - default CI (tests)
 run-name: ${{ github.author }} is running the CI
 on:
   push:
