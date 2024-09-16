@@ -12,7 +12,6 @@ Main::~Main()
 
 int Main::run(vector<string> args)
 {
-
     //args = { "pkv", "get", "test", "-f:./aa.txt" };
     //args = { "./pkv", "-H", "10101", "-V"};
     //args = { "./pkv", "-H", "10101", "-V"};
@@ -159,6 +158,9 @@ void Main::checkVerbose(ArgUtils &parser)
     this->verbose=indexes.size() > 0;
     for (int c = indexes.size()-1; c >= 0; c--)
         parser.remove(indexes[c]);
+
+    if (this->verbose)
+        cout << "Verbose mode enabled" << endl;
 }
 
 void Main::debug(string message)
