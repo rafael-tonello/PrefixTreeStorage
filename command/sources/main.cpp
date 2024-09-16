@@ -19,8 +19,7 @@ int Main::run(vector<string> args)
     //args = { "./pkv", "-h"};
     //args = {"/home/rafinha_tonello/.local/bin/pkv", "-H", "50654", "-f:\"/media/veracrypt/projects/rafinha_tonello/shellscript_utils/tests/tmp/tmpDbs/db4\""};
     // /home/rafinha_tonello/.local/bin/pkv get thekey -f:/media/veracrypt/projects/rafinha_tonello/shellscript_utils/tests/tmp/tmpDbs/db4
-
-
+    //args = { "/home/rafinha_tonello/.local/bin/pkv",  "-H", "50938", "-f:./tmp/tmpDbs/testInit4.db", "-d", "2887652"};
 
     ArgUtils parser(args, true);
 

@@ -114,9 +114,9 @@ public:
         
         if (tmp.find(' ') != string::npos)
             tmp = tmp.substr(tmp.find(' ')+1);
-        if (tmp.find(':') != string::npos)
+        else if (tmp.find(':') != string::npos)
             tmp = tmp.substr(tmp.find(':')+1);
-        if (tmp.find('=') != string::npos)
+        else if (tmp.find('=') != string::npos)
             tmp = tmp.substr(tmp.find('=')+1);
         else
         {
@@ -160,9 +160,9 @@ public:
         
         if (tmp.find(' ') != string::npos)
             tmp = tmp.substr(0, tmp.find(' ')-1);
-        if (tmp.find(':') != string::npos)
+        else if (tmp.find(':') != string::npos)
             tmp = tmp.substr(0, tmp.find(':')-1);
-        if (tmp.find('=') != string::npos)
+        else if (tmp.find('=') != string::npos)
             tmp = tmp.substr(0, tmp.find('=')-1);
 
         return tmp;
