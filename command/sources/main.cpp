@@ -12,11 +12,12 @@ Main::~Main()
 
 int Main::run(vector<string> args)
 {
+
     //args = { "pkv", "get", "test", "-f:./aa.txt" };
     //args = { "./pkv", "-H", "10101", "-V"};
     //args = { "./pkv", "-H", "10101", "-V"};
     //args = { "./pkv", "-h"};
-    args = {"/home/rafinha_tonello/.local/bin/pkv", "-H", "50654", "-f:\"/media/veracrypt/projects/rafinha_tonello/shellscript_utils/tests/tmp/tmpDbs/db4\""};
+    //args = {"/home/rafinha_tonello/.local/bin/pkv", "-H", "50654", "-f:\"/media/veracrypt/projects/rafinha_tonello/shellscript_utils/tests/tmp/tmpDbs/db4\""};
     // /home/rafinha_tonello/.local/bin/pkv get thekey -f:/media/veracrypt/projects/rafinha_tonello/shellscript_utils/tests/tmp/tmpDbs/db4
 
 
@@ -171,6 +172,7 @@ bool Main::displayHelper(ArgUtils &parser)
 {
     if (parser.size() == 1 || parser.containsArgOrFlag("--help") || parser.containsArgOrFlag("-h"))
     {
+        cout << "PrefixTree Key-Value storage. Version " << APP_VERSION << endl;
         cout << "Usage:" << parser.getText(0, "command") << " action [options]" << endl;
         cout << "Actions:" << endl;
         cout << "  set, -s <key> <value>: set a value in the storage" << endl;

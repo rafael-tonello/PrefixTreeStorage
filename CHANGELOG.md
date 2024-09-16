@@ -1,3 +1,0 @@
-- First version released
-- Library (.so)
-- Command line tool
