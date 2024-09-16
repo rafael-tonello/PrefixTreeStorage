@@ -24,6 +24,9 @@ int Main::run(vector<string> args)
 
     checkVerbose(parser);
 
+    debug("starting up PKV");
+    debug("Pkv version: " + APP_VERSION);
+
     //helper and vertion
     if (displayHelper(parser))
         return 0;
@@ -33,6 +36,7 @@ int Main::run(vector<string> args)
 
 
     //check for conflicts in the command argument
+    debug("Checking for conflicts");
     auto conflictError = checkConflicts(parser);
     if (conflictError != Errors::NoError)
     {
@@ -41,7 +45,9 @@ int Main::run(vector<string> args)
     }
 
     //determine the filename
+    debug ("Getting file name");
     auto [ filename, error] = getFileName(parser);
+    debug("prefixTree file: " + filename);
     if (error != Errors::NoError)
     {
         cout << "Error resolving file name: " << error << endl;
@@ -49,6 +55,7 @@ int Main::run(vector<string> args)
     }
 
     //initialize the stroage and the prefixTree
+    debug ("Initing storage");
     auto [ prefixTree, errInitStorage ] = initStorage(filename);
     if (errInitStorage != Errors::NoError)
     {
@@ -58,6 +65,7 @@ int Main::run(vector<string> args)
 
 
     //detect and process commands
+    debug("Processing commands");
     auto errProcessCommands = processCommands(parser, prefixTree);
     if (errProcessCommands != Errors::NoError)
     {
@@ -89,11 +97,15 @@ Error Main::processCommands(ArgUtils &parser, PrefixTree<string> *p)
     for (int index = 1; index < parser.size(); index++)
     {
         auto c = parser.getText(index);
+        debug ("Processing command: " + c);
 
         if (c == "--get" || c == "-g" || c == "get")
         {
             auto key = parser.getText(index +1);
+
+            debug("Getting key "+key);
             auto ret = p->get(key);
+
             cout << ret << endl;
 
             index += 1;
@@ -102,18 +114,21 @@ Error Main::processCommands(ArgUtils &parser, PrefixTree<string> *p)
         {
             auto key = parser.getText(index +1);
             auto value = parser.getText(index +2);
+            debug("Setting key "+key+" with value "+value);
             p->set(key, value);
             index += 2;
         }
         else if (c == "--remove" || c == "-r" || c == "remove" || c == "--delete" || c == "-d" || c == "delete" )
         {
             auto key = parser.getText(index +1);
+            debug("Removing key "+key);
             p->set(key, "");
             index += 1;
         }
         else if (c == "--search" || c == "-S" || c == "search")
         {
             auto key = parser.getValue(index + 1);
+            debug("Searching for keys (looking for '"+key.value+"')");
             auto ret = p->searchChilds(key.value);
             for (auto &it : ret)
             {
@@ -281,6 +296,7 @@ Error Main::startHttpServer(ArgUtils &parser, int port, PrefixTree<string> *p)
             //if 'key' is empty, just replay with 'no content'. Client can use this to check if the server is up
             if (key == "")
             {
+                debug ("empty key. Returning 204 (server is alive!)");
                 out->httpStatus = 204;
                 return;
             }
@@ -292,6 +308,7 @@ Error Main::startHttpServer(ArgUtils &parser, int port, PrefixTree<string> *p)
             }
             
             auto value = p->get(key, "");
+            debug ("key " + key + " will be returned (its value is " + value + ")");
             out->setContentString(value);
         }
         else if (in->method == "POST")
@@ -303,6 +320,8 @@ Error Main::startHttpServer(ArgUtils &parser, int port, PrefixTree<string> *p)
 
             auto value = in->getContentString();
 
+            debug ("setting key " + key + " with value " + value);
+
             p->set(key, value);
         }
         else if (in->method == "DELETE")
@@ -312,8 +331,17 @@ Error Main::startHttpServer(ArgUtils &parser, int port, PrefixTree<string> *p)
             //remove the first /
             key = key.substr(1);
 
+            debug("deleting key " + key);
+
             p->set(key, "");
         }
+        else
+        {
+            out->httpStatus = 405;
+            out->httpMessage = "Method "+in->method+" not allowed";
+        }
+
+        debug ("returning from http request");
     });
 
     //shared_ptr<KWSRequestRoute> route(string method, string resource);
@@ -346,10 +374,10 @@ Error Main::startHttpServer(ArgUtils &parser, int port, PrefixTree<string> *p)
         //che if one of dependent pid is not avalable.. if so, close the server
         for (auto pid : dependentPid)
         {
-            debug("Checking if pid " + pid.value + " is running");
+            //debug("Checking if pid " + pid.value + " is running");
             //check if pid is running
             string command = "ps -p " + pid.value + " -o comm=";
-            debug("running command '"+command+"'");
+            //debug("running command '"+command+"'");
             auto result=Utils::ssystem(command);
             if (result == "")
             {
