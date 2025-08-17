@@ -196,12 +196,12 @@ bool Main::displayHelper(ArgUtils &parser)
         cout << "  delete, -d <key>: remove a value from the storage" << endl;
         cout << "  search, -S <key>: search for keys in the storage" << endl;
         cout << "  startHttpServer, -H <port> [options]: start a http server in the port <port> to access the storage" << endl;
-        cout << "    Options:" << endl;
+        cout << "    Options for HTTP server:" << endl;
         cout << "      --dependendsOnPID, -d <pid>: set a PID to be monitored. If the process ends, this program exists. You can specify multiple dependentpids" << endl;
         cout << "Options:" << endl;
         cout << "  --help, -h: display this help" << endl;
         cout << "  --version, -v: display the version" << endl;
-        cout << "  --file, -f <file>: file to be used as stroage. If no one is provided, a default will be used (~/.local/pkv_default_db)" << endl;
+        cout << "  --file, -f <file>: file to be used as stroage. If no one is provided, a default will be used ("+Utils::ssystem("echo $HOME").output+"/.local/pkv_default_db)" << endl;
         cout << "  --blocksize, -b <size>: block size to be used in the storage. If no one is provided, a default will be used (64)" << endl;
         cout << "  --verbose, -V: pkv will print debug information to stdout" << endl;
         return true;
@@ -222,7 +222,7 @@ bool Main::displayVersion(ArgUtils &parser)
 tuple<string, Error> Main::getFileName(ArgUtils &parser)
 {
     //auto defaultFile = string("~/.local/share/prefixtree_keyvaluedb/pkv_default_db");
-    auto ret = string("/tmp/pkv_tmp_db");
+    auto ret = string(Utils::ssystem("echo $HOME").output + "/.local/pkv_default_db");
 
     auto indexes = parser.findIndexes({"--file", "-f"});
 
@@ -378,7 +378,7 @@ Error Main::startHttpServer(ArgUtils &parser, int port, PrefixTree<string> *p)
             //check if pid is running
             string command = "ps -p " + pid.value + " -o comm=";
             //debug("running command '"+command+"'");
-            auto result=Utils::ssystem(command);
+            auto result=Utils::ssystem(command).output;
             if (result == "")
             {
                 cout << "Dependent process " << pid.value << " is not running. Closing the server" << endl;

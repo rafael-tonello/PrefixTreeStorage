@@ -6,7 +6,7 @@
 
 #include <fstream>
 #include <string.h>
-#include <errors.h>
+#include "../common/errors.h"
 
 using namespace std;
 

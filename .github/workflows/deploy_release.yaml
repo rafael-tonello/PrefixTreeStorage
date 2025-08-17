@@ -48,7 +48,7 @@ jobs:
 
           echo "Building library..."
 
-          cd library
+          cd projects/library
           rm -rf build
           make all
           cd $backFolder
@@ -74,16 +74,16 @@ jobs:
           mkdir -p $deployFolderName
           echo ============= Removind objects files =================
           rm -rf "$currentFolderName/command/build/objects"
-          rm -rf "$currentFolderName/library/build/objects"
+          rm -rf "$currentFolderName/projects/library/build/objects"
         
           echo ============= Copyng built files =================
           ls -lha "$currentFolderName/command"
           cp -r "$currentFolderName/command/build" "$deployFolderName/"
           mv "$deployFolderName/build" "$deployFolderName/command"
 
-          ls -lha "$currentFolderName/library"
-          cp -r "$currentFolderName/library/build" "$deployFolderName/"
-          mv "$deployFolderName/build" "$deployFolderName/library"
+          ls -lha "$currentFolderName/projects/library"
+          cp -r "$currentFolderName/projects/library/build" "$deployFolderName/"
+          mv "$deployFolderName/build" "$deployFolderName/projects/library"
 
           cp "$currentFolderName/CHANGELOG.md" "$deployFolderName/"
 

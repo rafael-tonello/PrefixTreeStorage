@@ -14,7 +14,7 @@
 using namespace std;
 using namespace KWShared;
 
-const string APP_VERSION = "0.1.0";
+const string APP_VERSION = "0.2.0";
 
 class Main{
 private:

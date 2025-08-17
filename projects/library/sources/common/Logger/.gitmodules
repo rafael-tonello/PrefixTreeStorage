@@ -1,0 +1,3 @@
+[submodule "sources/common/libs/DynamicVar"]
+	path = sources/common/libs/DynamicVar
+	url = https://github.com/rafael-tonello/DynamicVar.git

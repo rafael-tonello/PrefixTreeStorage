@@ -7,6 +7,10 @@ import (
 
 	"github.com/ebitengine/purego"
 )
+import (
+	"encoding/json"
+	"reflect"
+)
 
 type PrefixTreeKeyValue struct {
 	instance uint64
@@ -64,4 +68,36 @@ func (p *PrefixTreeKeyValue) Get(key string, defaultValue string) string {
 	}
 
 	return result
+}
+
+func (p *PrefixTreeKeyValue) SetO(key string, value any) error {
+	strValue := ""
+	err := error(nil)
+	if reflect.TypeOf(value).Kind() == reflect.String {
+		strValue = value.(string)
+	} else {
+		buffer, err2 := json.Marshal(value)
+		if err == nil {
+			strValue = string(buffer)
+		} else {
+			strValue = fmt.Sprintf("%v", value)
+		}
+		err = err2
+	}
+
+	p.Set(key, fmt.Sprintf("%v", strValue))
+	return err
+}
+
+func (p *PrefixTreeKeyValue) GetO(key string, defaultValue any) (any, error) {
+	result := p.Get(key, "")
+
+	if result == "" {
+		return defaultValue, nil
+	}
+
+	var unmarshaledValue any
+	error := json.Unmarshal([]byte(result), &unmarshaledValue)
+
+	return unmarshaledValue, error
 }

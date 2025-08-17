@@ -67,5 +67,10 @@ int main()
         cout << "returned value (key '" << keys[a] <<"'): " << ret << endl;
     }
 
+    p.searchChilds("TCP", 1000, [](auto &node) {
+        cout << "Found key: " << node.key << endl;
+        return true; // continue searching
+    });
+
     return 0;
 }

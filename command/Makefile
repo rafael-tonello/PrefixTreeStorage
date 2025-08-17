@@ -44,7 +44,7 @@ CC_FLAGS=-D__TESTING__\
 		-pedantic  \
 		-pthread   \
 		-std=c++20 \
-		-lssl      \
+		-lssl	  \
 		-lcrypto   \
 		$(CUSTOM_INCLUDE_PATH)
 
@@ -55,14 +55,12 @@ LK_FLAGS=-D__TESTING__\
 		-pedantic  \
 		-pthread   \
 		-std=c++20 \
-		-lssl      \
+		-lssl	  \
 		-lcrypto   \
 		$(CUSTOM_INCLUDE_PATH)
 #
 # Compilation and linking
 #
- 
-
  
 # Command used at clean target
 RM = rm -rf
@@ -73,6 +71,11 @@ debug: LK_FLAGS+=-g
 debug: CC_FLAGS+=-ggdb
 debug: LK_FLAGS+=-ggdb
 debug: prebuild $(PROJ_NAME)
+
+arm: CC=arm-linux-gnueabihf-g++
+arm: CC_FLAGS+=-O3   
+arm: LK_FLAGS+=-O3
+arm: prebuild $(PROJ_NAME)
 	
 all: CC_FLAGS+=-O3   
 all: LK_FLAGS+=-O3

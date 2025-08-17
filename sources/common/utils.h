@@ -1,5 +1,5 @@
-#ifndef __UTILS__H__
-#define __UTILS__H__
+#ifndef __UTILSs__H__
+#define __UTILSs__H__
 
 #include <string>
 #include <fstream>
@@ -7,13 +7,15 @@
 #include <map>
 #include <unistd.h>
 #include <exception>
+#ifdef THREAD_POOL_H
+    #include <ThreadPool.h>
+#endif
 #include <sys/wait.h>
 #include <sstream>
 #include <algorithm>
 #include <iostream>
 #include <cctype>
 #include <vector>
-
 
 using namespace std;
     /**
@@ -78,11 +80,17 @@ using namespace std;
         static string StringToHex(string& input);
         static string charVecToHex(char* data, size_t size);
         static string charVecToHex(const char* data, size_t size);
+        static vector<string> splitString(string source, string split_by);
         static string strToUpper(std::string source);
         static string strToLower(std::string source);
         static string getOnly(string source, string validChars);
-        static string ssystem (string, bool removeTheLastLF = true);
-        static future<string> asystem(string, bool removeTheLastLF = true);
+        
+        struct SSystemReturn{
+            string output;
+            int exitCode;
+        };
+        static SSystemReturn ssystem (string, bool removeTheLastLF = true);
+        static future<SSystemReturn> asystem(string, bool removeTheLastLF = true);
         static future<string> httpGet(string url, map<string, string> headers = {});
         static future<string> httpPost(string url, string body, string contentType = "application/json", map<string, string> headers = {});
         static void process_mem_usage(double& vm_usage, double& resident_set);
@@ -124,9 +132,9 @@ using namespace std;
         static string sr(string source, vector<tuple<string, string>> replaceAndByTuples){return stringReplace(source, replaceAndByTuples);};
 
         //replaces each char '?' by one of item of 'by' vector. ANother or string can be replaced by '?' in the 'marker' argument
-        static string stringReplace(string source, vector<string> by, string marker = "?", bool use_TheArgBy_Circularly = false);
+        static string stringReplaceMarker(string source, vector<string> by, string marker = "?", bool use_TheArgBy_Circularly = false);
         //replaces each char '?' by one of item of 'by' vector. ANother or string can be replaced by '?' in the 'marker' argument
-        static string sr(string source, vector<string> by, string marker = "?", bool use_TheArgBy_Circularly = false){ return stringReplace(source, by, marker, use_TheArgBy_Circularly);};
+        static string srm(string source, vector<string> by, string marker = "?", bool use_TheArgBy_Circularly = false){ return stringReplaceMarker(source, by, marker, use_TheArgBy_Circularly);};
         
         static bool isNumber(string source);
 
@@ -140,6 +148,9 @@ using namespace std;
         static string ltrim(string s);
         static string rtrim(string s);
         static string trim(std::string s);
+
+        static string escapeString(string source);
+        static string unescapeString(string source);
 
         template <typename S, typename T>
         static vector<T> mapVector(vector<S> source, function<T(S)> f)
@@ -157,6 +168,47 @@ using namespace std;
             std::copy_if(source.begin(), source.end(), std::back_inserter(result), f);
             return result;
         }
+
+        #ifdef THREAD_POOL_H
+            template<typename T>
+            static future<void> parallel_foreach(vector<T> items, function<void(T, void* additionalArgs)> f, ThreadPool *tasker, void* additionalArgs = NULL)
+            {
+                vector<future<void>> pendingTasks = {};
+                for (auto &c: items)
+                {
+                    pendingTasks.push_back(tasker->enqueue([&](T &item, void* argsp){
+                        f(item, argsp);
+                    }, c, additionalArgs));
+                };
+
+                /*return tasker->enqueue([&](auto pendingTasks2){
+                    for (auto &c: pendingTasks2)
+                        c.wait();
+                }, pendingTasks);*/
+
+                return tasker->enqueue([&](){
+                    for (auto &c: pendingTasks)
+                        c.wait();
+                });
+            }
+
+            static future<void> parallel_for(int from, int to, function<void(int)> f, ThreadPool * tasker)
+            {
+                vector<future<void>> pendingTasks;
+                for (int c = from; c != to; from > to ? c-- : c++)
+                {
+                    if (c != to)
+                        pendingTasks.push_back(tasker->enqueue([&](int index){
+                            f(index);
+                        }, c));
+                }
+
+                return tasker->enqueue([&](){
+                    for (auto &c: pendingTasks)
+                        c.wait();
+                });
+            }
+        #endif
 
 
     };

@@ -99,6 +99,28 @@ string Utils::charVecToHex(const char* data, size_t size)
     return charVecToHex((char*)data, size);
 }
 
+vector<string> Utils::splitString(string source, string split_by)
+{
+    vector<string> result;
+    
+    while (true)
+    {
+        auto pos = source.find(split_by);
+        if (pos != string::npos)
+        {
+            result.push_back(source.substr(0, pos));
+            source = source.substr(pos + split_by.size());
+        }
+        else
+            break;
+    }
+
+    if (source != "")
+        result.push_back(source);
+
+    return result;
+}
+
 string Utils::strToUpper(std::string source)
 {
     std::string result = source;
@@ -131,7 +153,7 @@ string Utils::getOnly(string source, string validChars)
     return ret;
 }
 
-string Utils::ssystem (string command, bool removeTheLastLF) {
+Utils::SSystemReturn Utils::ssystem (string command, bool removeTheLastLF) {
 
     const int bufferSize = 128;
     char buffer[bufferSize];
@@ -141,7 +163,7 @@ string Utils::ssystem (string command, bool removeTheLastLF) {
     FILE* pipe = popen((command + " 2>&1").c_str(), "r");
     if (pipe == nullptr) {
         std::cerr << "Erro ao executar o comando." << std::endl;
-        return output;
+        return {"", -1};
     }
 
     // Ler a saída do subprocesso (stdout e stderr)
@@ -150,17 +172,17 @@ string Utils::ssystem (string command, bool removeTheLastLF) {
     }
 
     // Fechar o subprocesso
-    pclose(pipe);
+    int retStatus = pclose(pipe);
 
     // Remover a quebra de linha final, se necessário
     if (removeTheLastLF && !output.empty() && output.back() == '\n') {
         output.pop_back();
     }
 
-    return output;
+    return {output, retStatus};
 }
 
-future<string> Utils::asystem(string command, bool removeTheLastLF)
+future<Utils::SSystemReturn> Utils::asystem(string command, bool removeTheLastLF)
 {
     return std::async(std::launch::async, [&](string c, bool rtllf){
         return ssystem(c, rtllf);
@@ -176,11 +198,11 @@ future<string> Utils::httpGet(string url, map<string, string> headers)
         cmd += "-H '"+c.first+": "+c.second+"' ";
     
     return std::async(std::launch::async, [](string cmd2){
-        string ret = ssystem(cmd2);
-        if (ret.find("curl") == string::npos)
-            return ret;
+        auto ret = ssystem(cmd2);
+        if (ret.output.find("curl") == string::npos)
+            return ret.output;
         else
-            throw std::runtime_error("Curl error: "+ret);
+            throw std::runtime_error("Curl error: "+ret.output);
 
     }, cmd);
 
@@ -199,17 +221,15 @@ future<string> Utils::httpPost(string url, string body, string contentType, map<
     cmd += "-d '"+body+"'";
 
     return std::async(std::launch::async, [](string cmd2){
-        string ret = ssystem(cmd2);
-        if (ret.find("curl") == string::npos)
-            return ret;
+        auto ret = ssystem(cmd2);
+        if (ret.output.find("curl") == string::npos)
+            return ret.output;
         else
-            throw std::runtime_error("Curl error: "+ret);
+            throw std::runtime_error("Curl error: "+ret.output);
 
     }, cmd);
 
 }
-
-
 
 void Utils::process_mem_usage(double& vm_usage, double& resident_set)
 {
@@ -489,7 +509,7 @@ string Utils::stringReplace(string source, vector<tuple<string, string>> replace
     return source;
 }
 
-string Utils::stringReplace(string source, vector<string> by, string marker, bool use_TheArgBy_Circularly)
+string Utils::stringReplaceMarker(string source, vector<string> by, string marker, bool use_TheArgBy_Circularly)
 {
     stringstream ret;
     auto pos = source.find(marker);
@@ -617,4 +637,32 @@ string Utils::rtrim(string s) {
 // trim from both ends (in place)
 string Utils::trim(std::string s) {
     return rtrim(ltrim(s));
+}
+
+string Utils::escapeString(string source)
+{
+    string ret = source;
+    ret = Utils::stringReplace(ret, {
+        {"\\", "\\\\"},
+        {"\"", "\\\""},
+        {"\n", "\\n"},
+        {"\r", "\\r"},
+        {"\t", "\\t"}
+    });
+
+    return ret;
+}
+
+string Utils::unescapeString(string source)
+{
+    string ret = source;
+    ret = Utils::stringReplace(ret, {
+        {"\\n", "\n"},
+        {"\\r", "\r"},
+        {"\\t", "\t"},
+        {"\\\"", "\""},
+        {"\\\\", "\\"}
+    });
+
+    return ret;
 }
